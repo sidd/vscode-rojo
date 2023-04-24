@@ -7,7 +7,7 @@ import * as vscode from "vscode"
 import { outputChannel, sendToOutput } from "./extension"
 import { Rojo } from "./Rojo"
 import StatusButton, { ButtonState } from "./StatusButton"
-import { BINARY_NAME, PLUGIN_PATTERN, RELEASE_URL } from "./Strings"
+import { BINARY_NAME, PLUGIN_PATTERN, RELEASE_URL, RELEASES_URL } from "./Strings"
 import Telemetry, { TelemetryEvent } from "./Telemetry"
 import {
   getLocalPluginPath,
@@ -455,8 +455,11 @@ export class Bridge extends vscode.Disposable {
     try {
       const options = { validateStatus: () => true }
       if (targetVersion) {
-        release = (await axios.get(`${RELEASE_URL}/${targetVersion}$`, options))
+        const releases = (await axios.get(RELEASES_URL, options))
           .data
+          sendToOutput(JSON.stringify(releases, null, 2));
+
+        release = releases.find((rel: any) => rel.tag_name === targetVersion)
       } else {
         release = (await axios.get(`${RELEASE_URL}/${releaseBranch}`, options))
           .data
